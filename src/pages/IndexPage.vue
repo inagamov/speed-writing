@@ -1,87 +1,116 @@
 <template>
   <q-page>
     <div class="container">
-      <div class="row q-gutter-lg q-py-lg">
-        <!-- typing speed / characters per minute -->
-        <q-card
-          flat
-          class="bg-grey-2"
-          :style="
-            $q.platform.is.mobile ? 'width: 100%;' : 'width: calc(50% - 24px);'
-          "
-        >
-          <q-card-section class="q-py-xl">
-            <div class="text-h4 text-center">
-              {{
-                timerInterval && isFinite(charsPerMinute)
-                  ? charsPerMinute
-                  : "***"
-              }}
-            </div>
-            <div class="text-center">Characters per minute</div>
-          </q-card-section>
-        </q-card>
+      <div class="row no-wrap q-py-lg">
+        <!-- stats -->
+        <div class="row q-gutter-lg full-width">
+          <!-- typing speed / characters per minute -->
+          <q-card
+            flat
+            class="bg-grey-2"
+            :style="
+              $q.platform.is.mobile
+                ? 'width: 100%;'
+                : 'width: calc(50% - 24px);'
+            "
+          >
+            <q-card-section class="q-py-xl">
+              <div class="text-h4 text-center">
+                {{
+                  timerInterval && isFinite(charsPerMinute)
+                    ? charsPerMinute
+                    : "***"
+                }}
+              </div>
+              <div class="text-center">{{ $t("stats.speed") }}</div>
+            </q-card-section>
+          </q-card>
 
-        <!-- accuracy -->
-        <q-card
-          flat
-          class="bg-grey-2"
-          :style="
-            $q.platform.is.mobile ? 'width: 100%;' : 'width: calc(50% - 24px);'
-          "
-        >
-          <q-card-section class="q-py-xl">
-            <div class="text-h4 text-center">
-              {{ timerInterval ? accuracy + "%" : "**" }}
-            </div>
-            <div class="text-center">Accuracy</div>
-          </q-card-section>
-        </q-card>
+          <!-- accuracy -->
+          <q-card
+            flat
+            class="bg-grey-2"
+            :style="
+              $q.platform.is.mobile
+                ? 'width: 100%;'
+                : 'width: calc(50% - 24px);'
+            "
+          >
+            <q-card-section class="q-py-xl">
+              <div class="text-h4 text-center">
+                {{ timerInterval ? accuracy + "%" : "**" }}
+              </div>
+              <div class="text-center">{{ $t("stats.accuracy") }}</div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- settings -->
+        <div class="column justify-between q-ml-md">
+          <LangSwitch />
+        </div>
       </div>
 
-      <!-- lines -->
-      <div
-        v-for="(line, lineIndex) in lines"
-        :key="lineIndex"
-        class="line"
-        :class="lineIndex === activeLineIndex ? 'line--active' : ''"
+      <!-- loading -->
+      <q-intersection
+        v-if="loading"
+        transition="scale"
+        once
+        class="row justify-center"
       >
-        <!-- characters -->
-        <span
-          v-for="(char, charIndex) in line"
-          :key="charIndex"
-          :class="`${
-            lineIndex === activeLineIndex
-              ? isMistaken && activeCharIndex === charIndex
-                ? 'line__error_char'
-                : activeCharIndex > charIndex
-                ? 'line__passed_char'
-                : activeCharIndex === charIndex
-                ? 'line__current_char'
-                : ''
-              : ''
-          } ${
-            lineIndex === activeLineIndex && activeCharIndex - 1 === charIndex
-              ? 'line__passed_char--pressed'
-              : ''
-          }`"
+        <q-spinner-ios color="grey" size="32px" />
+      </q-intersection>
+
+      <template v-else>
+        <!-- lines -->
+        <q-intersection
+          v-for="(line, lineIndex) in lines"
+          :key="lineIndex"
+          transition="scale"
+          transition-duration="500"
+          once
+          class="line"
+          :class="lineIndex === activeLineIndex ? 'line--active' : ''"
         >
-          {{ char }}
-        </span>
-      </div>
+          <!-- characters -->
+          <span
+            v-for="(char, charIndex) in line"
+            :key="charIndex"
+            :class="`${
+              lineIndex === activeLineIndex
+                ? isMistaken && activeCharIndex === charIndex
+                  ? 'line__error_char'
+                  : activeCharIndex > charIndex
+                  ? 'line__passed_char'
+                  : activeCharIndex === charIndex
+                  ? 'line__current_char'
+                  : ''
+                : ''
+            } ${
+              lineIndex === activeLineIndex && activeCharIndex - 1 === charIndex
+                ? 'line__passed_char--pressed'
+                : ''
+            }`"
+          >
+            {{ char }}
+          </span>
+        </q-intersection>
+      </template>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onBeforeMount } from "vue";
+import { computed, onBeforeMount, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useBaseStore } from "stores/base-store";
 import { useQuasar } from "quasar";
+import LangSwitch from "components/LangSwitch.vue";
+import { useI18n } from "vue-i18n";
 
-const { fetchLines, startTimer } = useBaseStore();
-
+const { locale } = useI18n({ useScope: "global" });
 const $q = useQuasar();
+const { fetchLines, startTimer } = useBaseStore();
 
 /*
  * variables
@@ -94,18 +123,22 @@ const {
   isMistaken,
   time,
   timerInterval,
+  loading,
 } = storeToRefs(useBaseStore());
 
 const activeLine = computed(() => {
   return lines.value[activeLineIndex.value];
 });
 
-/*
- * fetch lines
- */
 onBeforeMount(async () => {
-  await fetchLines();
+  /*
+   * fetch lines
+   */
+  await fetchLines(locale.value);
 
+  /*
+   * input
+   */
   document.addEventListener("keydown", function (event) {
     if (event.key === " ") {
       event.preventDefault();
@@ -193,6 +226,16 @@ const accuracy = computed(() => {
   );
   return result > 0 ? result : 0;
 });
+
+/*
+ * watch locale
+ */
+watch(
+  () => locale.value,
+  () => {
+    fetchLines(locale.value);
+  }
+);
 </script>
 
 <style scoped lang="scss">
@@ -239,5 +282,6 @@ const accuracy = computed(() => {
   -webkit-animation: shake 0.5s linear;
   animation: shake 0.5s linear, typing 1.25s infinite;
   display: inline-block;
+  min-width: 7.48px;
 }
 </style>
