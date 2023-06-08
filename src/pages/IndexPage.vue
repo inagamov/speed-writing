@@ -145,17 +145,6 @@ onBeforeMount(async () => {
       event.preventDefault();
     }
 
-    // warn about incorrect keyboard layout
-    if (
-      (locale.value === "ru-RU" && /^[A-Za-z]*$/.test(event.key)) ||
-      (locale.value === "en-US" && !/^[A-Za-z]*$/.test(event.key))
-    ) {
-      $q.notify({
-        message: t("errors.keyboardLayout"),
-        icon: "crisis_alert",
-      });
-    }
-
     // allow alphanumeric characters & some common special symbols
     if (
       /^[a-zA-Zа-яА-Я0-9]$/.test(event.key) ||
@@ -164,6 +153,17 @@ onBeforeMount(async () => {
       // on start
       if (!timerInterval.value) {
         startTimer();
+      }
+
+      // warn about incorrect keyboard layout
+      if (
+        (locale.value === "ru-RU" && /^[A-Za-z]*$/.test(event.key)) ||
+        (locale.value === "en-US" && !/^[A-Za-z]*$/.test(event.key))
+      ) {
+        $q.notify({
+          message: t("errors.keyboardLayout"),
+          icon: "crisis_alert",
+        });
       }
 
       // scroll into view
@@ -183,6 +183,9 @@ onBeforeMount(async () => {
         // highlight error
         isMistaken.value = true;
         mistakesCount.value += 1;
+
+        const errorSound = new Audio("/public/error.mp3");
+        errorSound.play();
       }
 
       // proceed to the next line
