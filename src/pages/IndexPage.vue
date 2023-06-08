@@ -107,6 +107,10 @@ onBeforeMount(async () => {
   await fetchLines();
 
   document.addEventListener("keydown", function (event) {
+    if (event.key === " ") {
+      event.preventDefault();
+    }
+
     // allow alphanumeric characters & some common special symbols
     if (
       /^[a-zA-Zа-яА-Я0-9]$/.test(event.key) ||
@@ -117,16 +121,14 @@ onBeforeMount(async () => {
         startTimer();
       }
 
+      // scroll into view
+      const element = document.getElementsByClassName("line--active")[0];
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+
       // remove mistake styles
       setTimeout(() => {
         isMistaken.value = false;
       }, 275);
-
-      // proceed to the next line
-      if (activeLine.value?.length - 1 === activeCharIndex.value) {
-        activeLineIndex.value += 1;
-        activeCharIndex.value = 0;
-      }
 
       // check entered value
       if (activeLine.value[activeCharIndex.value] === event.key) {
@@ -136,6 +138,12 @@ onBeforeMount(async () => {
         // highlight error
         isMistaken.value = true;
         mistakesCount.value += 1;
+      }
+
+      // proceed to the next line
+      if (activeLine.value?.length === activeCharIndex.value) {
+        activeLineIndex.value += 1;
+        activeCharIndex.value = 0;
       }
     }
   });
