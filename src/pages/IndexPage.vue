@@ -1,4 +1,235 @@
 <template>
   <q-page>
+    <div class="container">
+      <div class="row q-gutter-lg q-py-lg">
+        <!-- typing speed / characters per minute -->
+        <q-card
+          flat
+          class="bg-grey-2"
+          :style="
+            $q.platform.is.mobile ? 'width: 100%;' : 'width: calc(50% - 24px);'
+          "
+        >
+          <q-card-section class="q-py-xl">
+            <div class="text-h4 text-center">
+              {{
+                timerInterval && isFinite(charsPerMinute)
+                  ? charsPerMinute
+                  : "***"
+              }}
+            </div>
+            <div class="text-center">Characters per minute</div>
+          </q-card-section>
+        </q-card>
+
+        <!-- accuracy -->
+        <q-card
+          flat
+          class="bg-grey-2"
+          :style="
+            $q.platform.is.mobile ? 'width: 100%;' : 'width: calc(50% - 24px);'
+          "
+        >
+          <q-card-section class="q-py-xl">
+            <div class="text-h4 text-center">
+              {{ timerInterval ? accuracy + "%" : "**" }}
+            </div>
+            <div class="text-center">Accuracy</div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <!-- lines -->
+      <div
+        v-for="(line, lineIndex) in lines"
+        :key="lineIndex"
+        class="line"
+        :class="lineIndex === activeLineIndex ? 'line--active' : ''"
+      >
+        <!-- characters -->
+        <span
+          v-for="(char, charIndex) in line"
+          :key="charIndex"
+          :class="`${
+            lineIndex === activeLineIndex
+              ? isMistaken && activeCharIndex === charIndex
+                ? 'line__error_char'
+                : activeCharIndex > charIndex
+                ? 'line__passed_char'
+                : activeCharIndex === charIndex
+                ? 'line__current_char'
+                : ''
+              : ''
+          } ${
+            lineIndex === activeLineIndex && activeCharIndex - 1 === charIndex
+              ? 'line__passed_char--pressed'
+              : ''
+          }`"
+        >
+          {{ char }}
+        </span>
+      </div>
+    </div>
   </q-page>
 </template>
+
+<script setup>
+import { computed, onBeforeMount } from "vue";
+import { storeToRefs } from "pinia";
+import { useBaseStore } from "stores/base-store";
+import { useQuasar } from "quasar";
+
+const { fetchLines, startTimer } = useBaseStore();
+
+const $q = useQuasar();
+
+/*
+ * variables
+ */
+const {
+  lines,
+  activeLineIndex,
+  activeCharIndex,
+  mistakesCount,
+  isMistaken,
+  time,
+  timerInterval,
+} = storeToRefs(useBaseStore());
+
+const activeLine = computed(() => {
+  return lines.value[activeLineIndex.value];
+});
+
+/*
+ * fetch lines
+ */
+onBeforeMount(async () => {
+  await fetchLines();
+
+  document.addEventListener("keydown", function (event) {
+    // allow alphanumeric characters & some common special symbols
+    if (
+      /^[a-zA-Zа-яА-Я0-9]$/.test(event.key) ||
+      /^[.,\s\-*&^%$#@!']$/.test(event.key)
+    ) {
+      // on start
+      if (!timerInterval.value) {
+        startTimer();
+      }
+
+      // remove mistake styles
+      setTimeout(() => {
+        isMistaken.value = false;
+      }, 275);
+
+      // proceed to the next line
+      if (activeLine.value?.length - 1 === activeCharIndex.value) {
+        activeLineIndex.value += 1;
+        activeCharIndex.value = 0;
+      }
+
+      // check entered value
+      if (activeLine.value[activeCharIndex.value] === event.key) {
+        // proceed to the next character
+        activeCharIndex.value += 1;
+      } else {
+        // highlight error
+        isMistaken.value = true;
+        mistakesCount.value += 1;
+      }
+    }
+  });
+});
+
+/*
+ * typing speed
+ */
+const charsPerMinute = computed(() => {
+  // compute total amount of characters typed by user
+  let totalChars = 0;
+  lines.value.map((line, index) => {
+    if (activeLineIndex.value >= index) {
+      totalChars += line?.slice(
+        0,
+        activeLineIndex.value === index
+          ? activeCharIndex.value + 1
+          : line.length
+      ).length;
+    }
+  });
+
+  // compute typing speed, rounding the number
+  return Math.trunc((totalChars / time.value) * 100);
+});
+
+/*
+ * accuracy
+ */
+const accuracy = computed(() => {
+  // compute total amount of characters typed by user
+  let totalChars = 0;
+  lines.value.map((line, index) => {
+    if (activeLineIndex.value >= index) {
+      totalChars += line?.slice(
+        0,
+        activeLineIndex.value === index
+          ? activeCharIndex.value + 1
+          : line.length
+      ).length;
+    }
+  });
+
+  // compute accuracy
+  const result = Math.round(
+    ((totalChars - mistakesCount.value) / totalChars) * 100
+  );
+  return result > 0 ? result : 0;
+});
+</script>
+
+<style scoped lang="scss">
+// line
+.line {
+  font-size: 24px;
+  opacity: 0.3;
+  font-weight: 600;
+  color: $grey;
+  text-align: center;
+  transition: 0.275s;
+}
+
+.line--active {
+  font-size: 30px;
+  opacity: 1;
+  padding: 16px 0;
+}
+
+// passed character
+.line__passed_char {
+  color: black;
+}
+
+// current character
+.line__current_char {
+  animation: typing 1.25s infinite;
+}
+
+@keyframes typing {
+  0% {
+    text-decoration: underline;
+  }
+  50% {
+    text-decoration: none;
+  }
+  100% {
+    text-decoration: underline;
+  }
+}
+
+// error character
+.line__error_char {
+  -webkit-animation: shake 0.5s linear;
+  animation: shake 0.5s linear, typing 1.25s infinite;
+  display: inline-block;
+}
+</style>
