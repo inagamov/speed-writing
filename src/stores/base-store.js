@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
-import { useI18n } from "vue-i18n";
 import { transliterateEnglishToRussian } from "src/helpers/transliterate";
 
 export const useBaseStore = defineStore("base", {
@@ -25,13 +24,23 @@ export const useBaseStore = defineStore("base", {
   },
 
   actions: {
+    clearData() {
+      this.lines = [];
+      this.activeLineIndex = 0;
+      this.activeCharIndex = 0;
+      this.mistakesCount = 0;
+      this.isMistaken = false;
+      this.time = 0;
+      this.timerInterval = null;
+    },
+
     fetchLines(locale) {
+      this.clearData();
       this.loading = true;
 
       api
         .get("https://baconipsum.com/api/?type=meat-and-filler&lines=5")
         .then((response) => {
-          this.lines = [];
           response.data[0].split(/[.?!]\s/).map((line, index) => {
             if (locale === "ru-RU") {
               line = transliterateEnglishToRussian(line);

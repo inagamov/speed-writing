@@ -56,13 +56,13 @@
         v-if="loading"
         transition="scale"
         once
-        class="row justify-center"
+        class="row justify-center q-mt-lg"
       >
         <q-spinner-ios color="grey" size="32px" />
       </q-intersection>
 
+      <!-- lines -->
       <template v-else>
-        <!-- lines -->
         <q-intersection
           v-for="(line, lineIndex) in lines"
           :key="lineIndex"
@@ -108,7 +108,7 @@ import { useQuasar } from "quasar";
 import LangSwitch from "components/LangSwitch.vue";
 import { useI18n } from "vue-i18n";
 
-const { locale } = useI18n({ useScope: "global" });
+const { locale, t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 const { fetchLines, startTimer } = useBaseStore();
 
@@ -140,8 +140,20 @@ onBeforeMount(async () => {
    * input
    */
   document.addEventListener("keydown", function (event) {
+    // prevent space
     if (event.key === " ") {
       event.preventDefault();
+    }
+
+    // warn about incorrect keyboard layout
+    if (
+      (locale.value === "ru-RU" && /^[A-Za-z]*$/.test(event.key)) ||
+      (locale.value === "en-US" && !/^[A-Za-z]*$/.test(event.key))
+    ) {
+      $q.notify({
+        message: t("errors.keyboardLayout"),
+        icon: "crisis_alert",
+      });
     }
 
     // allow alphanumeric characters & some common special symbols

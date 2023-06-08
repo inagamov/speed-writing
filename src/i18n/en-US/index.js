@@ -3,4 +3,8 @@ export default {
     speed: "Characters per minute",
     accuracy: "Accuracy",
   },
+
+  errors: {
+    keyboardLayout: "Change keyboard layout",
+  },
 };

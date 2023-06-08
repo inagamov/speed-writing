@@ -3,4 +3,8 @@ export default {
     speed: "Знаков в минуту",
     accuracy: "Точность",
   },
+
+  errors: {
+    keyboardLayout: "Измените раскладку клавиатуры",
+  },
 };
