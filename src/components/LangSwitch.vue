@@ -1,31 +1,16 @@
 <template>
-  <q-item class="q-item--btn q-hoverable q-btn--push" clickable v-ripple>
-    <transition
-      appear
-      enter-active-class="animated fadeInRight"
-      leave-active-class="animated fadeOutRight"
-    >
-      <div
-        v-if="showOptions"
-        style="
-          width: 0;
-          height: 0;
-          border-top: 8px solid transparent;
-          border-bottom: 8px solid transparent;
-          border-left: 8px solid #e9e9e9;
-          position: absolute;
-          top: 16px;
-          left: -8px;
-        "
-      ></div>
-    </transition>
-
+  <q-item
+    class="q-item--btn q-hoverable q-btn--push"
+    :class="showOptions ? 'bg-grey-2' : ''"
+    clickable
+    v-ripple
+  >
     <!-- ru-RU -->
     <svg
       v-if="locale === 'ru-RU'"
       :width="size"
       :height="size"
-      style="margin: auto auto"
+      class="country_flag"
       viewBox="0 0 512 512"
       xml:space="preserve"
     >
@@ -46,7 +31,7 @@
       v-if="locale === 'en-US'"
       :width="size"
       :height="size"
-      style="margin: auto auto"
+      class="country_flat"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 512 512"
       xml:space="preserve"
@@ -177,3 +162,10 @@ const changeLang = (lang) => {
   localStorage.setItem("lang", locale.value);
 };
 </script>
+
+<style scoped lang="scss">
+.country_flag {
+  margin: auto auto;
+  border-radius: 100%;
+}
+</style>
