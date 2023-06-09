@@ -48,6 +48,23 @@
         <!-- settings -->
         <div class="column justify-between q-ml-md">
           <LangSwitch />
+
+          <q-item
+            flat
+            round
+            color="grey"
+            clickable
+            v-ripple
+            class="q-item--btn q-hoverable q-btn--push"
+            @click="fetchLines(locale)"
+          >
+            <q-icon
+              name="auto_mode"
+              size="24px"
+              style="margin: auto auto"
+              :class="loading ? 'spin' : ''"
+            />
+          </q-item>
         </div>
       </div>
 
@@ -157,8 +174,8 @@ onBeforeMount(async () => {
 
       // warn about incorrect keyboard layout
       if (
-        (locale.value === "ru-RU" && /^[A-Za-z]*$/.test(event.key)) ||
-        (locale.value === "en-US" && !/^[A-Za-z]*$/.test(event.key))
+        (locale.value === "ru-RU" && /^[a-zA-Z]*$/.test(event.key)) ||
+        (locale.value === "en-US" && /^[а-яА-Я]*$/.test(event.key))
       ) {
         $q.notify({
           message: t("errors.keyboardLayout"),
@@ -184,6 +201,7 @@ onBeforeMount(async () => {
         isMistaken.value = true;
         mistakesCount.value += 1;
 
+        // play error sound
         const errorSound = new Audio("/public/error.mp3");
         errorSound.play();
       }
@@ -298,5 +316,23 @@ watch(
   animation: shake 0.5s linear, typing 1.25s infinite;
   display: inline-block;
   min-width: 7.48px;
+}
+
+// spin animation
+.spin {
+  animation: spin 0.5s ease-in-out;
+  transition: 0.5s;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0);
+  }
 }
 </style>

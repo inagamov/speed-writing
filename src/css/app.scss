@@ -45,19 +45,31 @@ body::-webkit-scrollbar {
 }
 
 /*
+ * q-item
+ */
+.q-item {
+  border-radius: 15px;
+}
+
+.q-item--btn {
+  aspect-ratio: 1/1;
+  padding: 0;
+}
+
+/*
  * push button
  */
-.q-btn__push {
+.q-btn--push {
   transition: 0.4s;
 }
-.q-btn__push:active {
+.q-btn--push:active {
   transform: scale(0.85);
 }
 
 /*
  * submit button
  */
-.q-btn__submit {
+.q-btn--submit {
   border-radius: 20px;
   background: linear-gradient(135deg, #ff5d4c 0%, #E30110 100%);
 

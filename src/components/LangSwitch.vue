@@ -1,10 +1,31 @@
 <template>
-  <q-btn flat round>
+  <q-item class="q-item--btn q-hoverable q-btn--push" clickable v-ripple>
+    <transition
+      appear
+      enter-active-class="animated fadeInRight"
+      leave-active-class="animated fadeOutRight"
+    >
+      <div
+        v-if="showOptions"
+        style="
+          width: 0;
+          height: 0;
+          border-top: 8px solid transparent;
+          border-bottom: 8px solid transparent;
+          border-left: 8px solid #e9e9e9;
+          position: absolute;
+          top: 16px;
+          left: -8px;
+        "
+      ></div>
+    </transition>
+
+    <!-- ru-RU -->
     <svg
       v-if="locale === 'ru-RU'"
       :width="size"
       :height="size"
-      style="margin: auto 0"
+      style="margin: auto auto"
       viewBox="0 0 512 512"
       xml:space="preserve"
     >
@@ -20,11 +41,12 @@
       />
     </svg>
 
+    <!-- en-US -->
     <svg
       v-if="locale === 'en-US'"
       :width="size"
       :height="size"
-      style="margin: auto 0"
+      style="margin: auto auto"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 512 512"
       xml:space="preserve"
@@ -96,11 +118,14 @@
       </g>
     </svg>
 
+    <!-- label -->
     <div v-if="showLabel" class="q-pl-md" style="margin: auto 0">
       {{ localeOptions.find((option) => option.value === locale).label }}
     </div>
 
+    <!-- options -->
     <q-menu
+      v-model="showOptions"
       :anchor="anchor"
       :self="self"
       :transition-show="enterTransition"
@@ -123,11 +148,12 @@
         </q-item>
       </q-list>
     </q-menu>
-  </q-btn>
+  </q-item>
 </template>
 
 <script setup>
 import { useI18n } from "vue-i18n";
+import { ref } from "vue";
 
 const { locale } = useI18n({ useScope: "global" });
 const localeOptions = [
@@ -140,9 +166,11 @@ defineProps({
   size: { type: String, default: "24px" },
   anchor: { type: String, default: "top left" },
   self: { type: String, default: "top right" },
-  enterTransition: { type: String, default: "jump-down" },
-  leaveTransition: { type: String, default: "jump-up" },
+  enterTransition: { type: String, default: "jump-left" },
+  leaveTransition: { type: String, default: "jump-right" },
 });
+
+const showOptions = ref(false);
 
 const changeLang = (lang) => {
   locale.value = lang;
