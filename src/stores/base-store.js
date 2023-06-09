@@ -17,21 +17,17 @@ export const useBaseStore = defineStore("base", {
     loading: false,
   }),
 
-  getters: {
-    activeLine: (state) => {
-      return state._user;
-    },
-  },
-
   actions: {
     clearData() {
       this.lines = [];
+
       this.activeLineIndex = 0;
       this.activeCharIndex = 0;
+
       this.mistakesCount = 0;
       this.isMistaken = false;
-      this.time = 0;
-      this.timerInterval = null;
+
+      this.stopTimer();
     },
 
     fetchLines(locale) {
