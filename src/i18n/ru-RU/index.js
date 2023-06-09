@@ -7,4 +7,8 @@ export default {
   errors: {
     keyboardLayout: "Измените раскладку клавиатуры",
   },
+
+  settings: {
+    sounds: "Звуки",
+  },
 };

@@ -47,8 +47,60 @@
 
         <!-- settings -->
         <div class="column justify-between q-ml-md">
+          <!-- language -->
           <LangSwitch />
 
+          <!-- other settings -->
+          <q-item
+            flat
+            round
+            color="grey"
+            clickable
+            v-ripple
+            class="q-item--btn q-hoverable q-btn--push"
+            :class="showSettings ? 'bg-grey-2' : ''"
+          >
+            <q-icon name="more_horiz" size="24px" style="margin: auto auto" />
+
+            <!-- options -->
+            <q-menu
+              v-model="showSettings"
+              anchor="top left"
+              self="top right"
+              transition-show="jump-left"
+              transition-hide="jump-right"
+              :offset="[8, 0]"
+              separate-close-popup
+            >
+              <q-list>
+                <!-- sounds -->
+                <q-item
+                  clickable
+                  style="border-radius: 10px"
+                  @click="
+                    updateSettings(SETTINGS.SOUNDS, !settings[SETTINGS.SOUNDS])
+                  "
+                >
+                  <q-item-section>
+                    <div class="row no-wrap">
+                      <div class="q-pr-md" style="margin: auto 0">
+                        {{ $t("settings.sounds") }}
+                      </div>
+
+                      <q-icon
+                        :name="
+                          settings[SETTINGS.SOUNDS] ? 'toggle_on' : 'toggle_off'
+                        "
+                        size="30px"
+                      />
+                    </div>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-item>
+
+          <!-- restart -->
           <q-item
             flat
             round
@@ -118,16 +170,20 @@
 </template>
 
 <script setup>
-import { computed, onBeforeMount, watch } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useBaseStore } from "stores/base-store";
 import { useQuasar } from "quasar";
 import LangSwitch from "components/LangSwitch.vue";
 import { useI18n } from "vue-i18n";
+import { useSettingsStore } from "stores/settings-store";
+import { SETTINGS } from "src/constants/SETTINGS";
 
 const { locale, t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
+
 const { fetchLines, startTimer } = useBaseStore();
+const { loadSettings, updateSettings } = useSettingsStore();
 
 /*
  * variables
@@ -143,11 +199,23 @@ const {
   loading,
 } = storeToRefs(useBaseStore());
 
+const { settings } = storeToRefs(useSettingsStore());
+
 const activeLine = computed(() => {
   return lines.value[activeLineIndex.value];
 });
 
+const showSettings = ref(false);
+
+/*
+ * functions
+ */
 onBeforeMount(async () => {
+  /*
+   * load settings
+   */
+  loadSettings();
+
   /*
    * fetch lines
    */
@@ -202,8 +270,10 @@ onBeforeMount(async () => {
         mistakesCount.value += 1;
 
         // play error sound
-        const errorSound = new Audio("/public/error.mp3");
-        errorSound.play();
+        if (settings.value[SETTINGS.SOUNDS]) {
+          const errorSound = new Audio("/public/error.mp3");
+          errorSound.play();
+        }
       }
 
       // proceed to the next line
@@ -261,7 +331,7 @@ const accuracy = computed(() => {
 });
 
 /*
- * watch locale
+ * watch for locale update
  */
 watch(
   () => locale.value,
