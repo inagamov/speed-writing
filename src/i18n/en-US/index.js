@@ -10,5 +10,6 @@ export default {
 
   settings: {
     sounds: "Sounds",
+    lines_amount: "Lines amount",
   },
 };

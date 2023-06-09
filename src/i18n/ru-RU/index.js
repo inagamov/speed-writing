@@ -10,5 +10,6 @@ export default {
 
   settings: {
     sounds: "Звуки",
+    lines_amount: "Кол-во строк",
   },
 };

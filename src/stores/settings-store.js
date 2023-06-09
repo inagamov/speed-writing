@@ -4,6 +4,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     settings: {
       sounds: true,
+      linesAmount: 5,
     },
   }),
 

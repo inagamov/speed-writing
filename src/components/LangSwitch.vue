@@ -10,7 +10,7 @@
       v-if="locale === 'ru-RU'"
       :width="size"
       :height="size"
-      class="country_flag"
+      style="margin: auto auto"
       viewBox="0 0 512 512"
       xml:space="preserve"
     >
@@ -31,7 +31,7 @@
       v-if="locale === 'en-US'"
       :width="size"
       :height="size"
-      class="country_flat"
+      style="margin: auto auto"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 512 512"
       xml:space="preserve"
@@ -162,10 +162,3 @@ const changeLang = (lang) => {
   localStorage.setItem("lang", locale.value);
 };
 </script>
-
-<style scoped lang="scss">
-.country_flag {
-  margin: auto auto;
-  border-radius: 100%;
-}
-</style>

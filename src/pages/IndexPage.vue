@@ -77,6 +77,11 @@
                 <q-item
                   clickable
                   style="border-radius: 10px"
+                  :class="
+                    settings[SETTINGS.SOUNDS]
+                      ? 'bg-black text-white'
+                      : 'bg-white text-black'
+                  "
                   @click="
                     updateSettings(SETTINGS.SOUNDS, !settings[SETTINGS.SOUNDS])
                   "
@@ -87,12 +92,72 @@
                         {{ $t("settings.sounds") }}
                       </div>
 
+                      <q-space />
+
                       <q-icon
                         :name="
                           settings[SETTINGS.SOUNDS] ? 'toggle_on' : 'toggle_off'
                         "
                         size="30px"
                       />
+                    </div>
+                  </q-item-section>
+                </q-item>
+
+                <!-- lines amount -->
+                <q-item
+                  style="border-radius: 10px"
+                  class="q-mt-sm q-py-none bg-grey-2"
+                >
+                  <q-item-section>
+                    <div class="row no-wrap">
+                      <div class="q-pr-lg" style="margin: auto 0">
+                        {{ $t("settings.lines_amount") }}
+                      </div>
+
+                      <q-space />
+
+                      <div
+                        class="row no-wrap"
+                        style="margin: auto 0; margin-right: -6px"
+                      >
+                        <!-- remove line -->
+                        <q-btn
+                          flat
+                          round
+                          style="min-width: 30px; min-height: 30px"
+                          :disable="lines.length === 1"
+                          @click="
+                            updateSettings(
+                              SETTINGS.LINES_AMOUNT,
+                              (settings[SETTINGS.LINES_AMOUNT] -= 1)
+                            );
+                            removeLine();
+                          "
+                        >
+                          <template #default>
+                            <q-icon name="do_not_disturb_on" />
+                          </template>
+                        </q-btn>
+
+                        <!-- add line -->
+                        <q-btn
+                          flat
+                          round
+                          style="min-width: 30px; min-height: 30px"
+                          @click="
+                            updateSettings(
+                              SETTINGS.LINES_AMOUNT,
+                              (settings[SETTINGS.LINES_AMOUNT] += 1)
+                            );
+                            addLine();
+                          "
+                        >
+                          <template #default>
+                            <q-icon name="add_circle" />
+                          </template>
+                        </q-btn>
+                      </div>
                     </div>
                   </q-item-section>
                 </q-item>
@@ -108,7 +173,7 @@
             clickable
             v-ripple
             class="q-item--btn q-hoverable q-btn--push"
-            @click="fetchLines(locale)"
+            @click="loadLines()"
           >
             <q-icon
               name="auto_mode"
@@ -132,38 +197,41 @@
 
       <!-- lines -->
       <template v-else>
-        <q-intersection
-          v-for="(line, lineIndex) in lines"
-          :key="lineIndex"
-          transition="scale"
-          transition-duration="500"
-          once
-          class="line"
-          :class="lineIndex === activeLineIndex ? 'line--active' : ''"
-        >
-          <!-- characters -->
-          <span
-            v-for="(char, charIndex) in line"
-            :key="charIndex"
-            :class="`${
-              lineIndex === activeLineIndex
-                ? isMistaken && activeCharIndex === charIndex
-                  ? 'line__error_char'
-                  : activeCharIndex > charIndex
-                  ? 'line__passed_char'
-                  : activeCharIndex === charIndex
-                  ? 'line__current_char'
-                  : ''
-                : ''
-            } ${
-              lineIndex === activeLineIndex && activeCharIndex - 1 === charIndex
-                ? 'line__passed_char--pressed'
-                : ''
-            }`"
+        <transition-group appear leave-active-class="animated fadeOutDown">
+          <q-intersection
+            v-for="(line, lineIndex) in lines"
+            :key="lineIndex"
+            transition="scale"
+            transition-duration="500"
+            once
+            class="line"
+            :class="lineIndex === activeLineIndex ? 'line--active' : ''"
           >
-            {{ char }}
-          </span>
-        </q-intersection>
+            <!-- characters -->
+            <span
+              v-for="(char, charIndex) in line"
+              :key="charIndex"
+              :class="`${
+                lineIndex === activeLineIndex
+                  ? isMistaken && activeCharIndex === charIndex
+                    ? 'line__error_char'
+                    : activeCharIndex > charIndex
+                    ? 'line__passed_char'
+                    : activeCharIndex === charIndex
+                    ? 'line__current_char'
+                    : ''
+                  : ''
+              } ${
+                lineIndex === activeLineIndex &&
+                activeCharIndex - 1 === charIndex
+                  ? 'line__passed_char--pressed'
+                  : ''
+              }`"
+            >
+              {{ char }}
+            </span>
+          </q-intersection>
+        </transition-group>
       </template>
     </div>
   </q-page>
@@ -182,7 +250,7 @@ import { SETTINGS } from "src/constants/SETTINGS";
 const { locale, t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
-const { fetchLines, startTimer } = useBaseStore();
+const { loadLines, startTimer, addLine, removeLine } = useBaseStore();
 const { loadSettings, updateSettings } = useSettingsStore();
 
 /*
@@ -219,7 +287,7 @@ onBeforeMount(async () => {
   /*
    * fetch lines
    */
-  await fetchLines(locale.value);
+  await loadLines();
 
   /*
    * input
@@ -336,7 +404,7 @@ const accuracy = computed(() => {
 watch(
   () => locale.value,
   () => {
-    fetchLines(locale.value);
+    loadLines();
   }
 );
 </script>
