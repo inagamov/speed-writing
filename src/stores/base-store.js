@@ -92,6 +92,9 @@ export const useBaseStore = defineStore("base", {
 
     removeLine() {
       if (this.lines.length > 1) {
+        this.activeLineIndex = 0;
+        this.activeCharIndex = 0;
+
         this.lines.pop();
       }
     },
