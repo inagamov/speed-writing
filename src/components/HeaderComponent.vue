@@ -266,6 +266,7 @@ window.addEventListener("scroll", () => {
   top: 24px;
   z-index: 1;
   max-width: 100%;
+  transition: 0.275s;
 }
 
 .header--stuck {
@@ -277,6 +278,7 @@ window.addEventListener("scroll", () => {
 
 .header .q-card {
   width: 100%;
+  transition: 0.275s;
 }
 .header--stuck .q-card {
   box-shadow: rgba(0, 0, 0, 0.075) 0 10px 20px !important;
