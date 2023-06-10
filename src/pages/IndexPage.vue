@@ -1,189 +1,8 @@
 <template>
   <q-page>
     <div class="container">
-      <div class="row no-wrap q-py-lg">
-        <!-- stats -->
-        <div class="row q-gutter-lg full-width">
-          <!-- typing speed / characters per minute -->
-          <q-card
-            flat
-            class="bg-grey-2"
-            :style="
-              $q.platform.is.mobile
-                ? 'width: 100%;'
-                : 'width: calc(50% - 24px);'
-            "
-          >
-            <q-card-section class="q-py-xl">
-              <div class="text-h4 text-center">
-                {{
-                  timerInterval && isFinite(charsPerMinute)
-                    ? charsPerMinute
-                    : "***"
-                }}
-              </div>
-              <div class="text-center">{{ $t("stats.speed") }}</div>
-            </q-card-section>
-          </q-card>
-
-          <!-- accuracy -->
-          <q-card
-            flat
-            class="bg-grey-2"
-            :style="
-              $q.platform.is.mobile
-                ? 'width: 100%;'
-                : 'width: calc(50% - 24px);'
-            "
-          >
-            <q-card-section class="q-py-xl">
-              <div class="text-h4 text-center">
-                {{ timerInterval ? accuracy + "%" : "**" }}
-              </div>
-              <div class="text-center">{{ $t("stats.accuracy") }}</div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- settings -->
-        <div class="column justify-between q-ml-md">
-          <!-- language -->
-          <LangSwitch />
-
-          <!-- other settings -->
-          <q-item
-            flat
-            round
-            color="grey"
-            clickable
-            v-ripple
-            class="q-item--btn q-hoverable q-btn--push"
-            :class="showSettings ? 'bg-grey-2' : ''"
-          >
-            <q-icon name="more_horiz" size="24px" style="margin: auto auto" />
-
-            <!-- options -->
-            <q-menu
-              v-model="showSettings"
-              anchor="top left"
-              self="top right"
-              transition-show="jump-left"
-              transition-hide="jump-right"
-              :offset="[8, 0]"
-              separate-close-popup
-            >
-              <q-list>
-                <!-- sounds -->
-                <q-item
-                  clickable
-                  style="border-radius: 10px"
-                  :class="
-                    settings[SETTINGS.SOUNDS]
-                      ? 'bg-black text-white'
-                      : 'bg-white text-black'
-                  "
-                  @click="
-                    updateSettings(SETTINGS.SOUNDS, !settings[SETTINGS.SOUNDS])
-                  "
-                >
-                  <q-item-section>
-                    <div class="row no-wrap">
-                      <div class="q-pr-md" style="margin: auto 0">
-                        {{ $t("settings.sounds") }}
-                      </div>
-
-                      <q-space />
-
-                      <q-icon
-                        :name="
-                          settings[SETTINGS.SOUNDS] ? 'toggle_on' : 'toggle_off'
-                        "
-                        size="30px"
-                      />
-                    </div>
-                  </q-item-section>
-                </q-item>
-
-                <!-- lines amount -->
-                <q-item
-                  style="border-radius: 10px"
-                  class="q-mt-sm q-py-none bg-grey-2"
-                >
-                  <q-item-section>
-                    <div class="row no-wrap">
-                      <div class="q-pr-lg" style="margin: auto 0">
-                        {{ $t("settings.lines_amount") }}
-                      </div>
-
-                      <q-space />
-
-                      <div
-                        class="row no-wrap"
-                        style="margin: auto 0; margin-right: -6px"
-                      >
-                        <!-- remove line -->
-                        <q-btn
-                          flat
-                          round
-                          style="min-width: 30px; min-height: 30px"
-                          :disable="lines.length === 1"
-                          @click="
-                            updateSettings(
-                              SETTINGS.LINES_AMOUNT,
-                              (settings[SETTINGS.LINES_AMOUNT] -= 1)
-                            );
-                            removeLine();
-                          "
-                        >
-                          <template #default>
-                            <q-icon name="do_not_disturb_on" />
-                          </template>
-                        </q-btn>
-
-                        <!-- add line -->
-                        <q-btn
-                          flat
-                          round
-                          style="min-width: 30px; min-height: 30px"
-                          @click="
-                            updateSettings(
-                              SETTINGS.LINES_AMOUNT,
-                              (settings[SETTINGS.LINES_AMOUNT] += 1)
-                            );
-                            addLine();
-                          "
-                        >
-                          <template #default>
-                            <q-icon name="add_circle" />
-                          </template>
-                        </q-btn>
-                      </div>
-                    </div>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-item>
-
-          <!-- restart -->
-          <q-item
-            flat
-            round
-            color="grey"
-            clickable
-            v-ripple
-            class="q-item--btn q-hoverable q-btn--push"
-            @click="loadLines()"
-          >
-            <q-icon
-              name="auto_mode"
-              size="24px"
-              style="margin: auto auto"
-              :class="loading ? 'spin' : ''"
-            />
-          </q-item>
-        </div>
-      </div>
+      <!-- header -->
+      <HeaderStats />
 
       <!-- loading -->
       <q-intersection
@@ -196,7 +15,7 @@
       </q-intersection>
 
       <!-- lines -->
-      <template v-else>
+      <div v-else class="q-mt-lg">
         <transition-group appear leave-active-class="animated fadeOutDown">
           <q-intersection
             v-for="(line, lineIndex) in lines"
@@ -232,26 +51,26 @@
             </span>
           </q-intersection>
         </transition-group>
-      </template>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { computed, onBeforeMount, ref, watch } from "vue";
+import { computed, onBeforeMount } from "vue";
 import { storeToRefs } from "pinia";
 import { useBaseStore } from "stores/base-store";
 import { useQuasar } from "quasar";
-import LangSwitch from "components/LangSwitch.vue";
 import { useI18n } from "vue-i18n";
 import { useSettingsStore } from "stores/settings-store";
 import { SETTINGS } from "src/constants/SETTINGS";
+import HeaderStats from "components/HeaderComponent.vue";
 
 const { locale, t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
-const { loadLines, startTimer, addLine, removeLine } = useBaseStore();
-const { loadSettings, updateSettings } = useSettingsStore();
+const { loadLines, startTimer } = useBaseStore();
+const { loadSettings } = useSettingsStore();
 
 /*
  * variables
@@ -262,7 +81,6 @@ const {
   activeCharIndex,
   mistakesCount,
   isMistaken,
-  time,
   timerInterval,
   loading,
 } = storeToRefs(useBaseStore());
@@ -272,8 +90,6 @@ const { settings } = storeToRefs(useSettingsStore());
 const activeLine = computed(() => {
   return lines.value[activeLineIndex.value];
 });
-
-const showSettings = ref(false);
 
 /*
  * functions
@@ -352,61 +168,6 @@ onBeforeMount(async () => {
     }
   });
 });
-
-/*
- * typing speed
- */
-const charsPerMinute = computed(() => {
-  // compute total amount of characters typed by user
-  let totalChars = 0;
-  lines.value.map((line, index) => {
-    if (activeLineIndex.value >= index) {
-      totalChars += line?.slice(
-        0,
-        activeLineIndex.value === index
-          ? activeCharIndex.value + 1
-          : line.length
-      ).length;
-    }
-  });
-
-  // compute typing speed, rounding the number
-  return Math.trunc((totalChars / time.value) * 100);
-});
-
-/*
- * accuracy
- */
-const accuracy = computed(() => {
-  // compute total amount of characters typed by user
-  let totalChars = 0;
-  lines.value.map((line, index) => {
-    if (activeLineIndex.value >= index) {
-      totalChars += line?.slice(
-        0,
-        activeLineIndex.value === index
-          ? activeCharIndex.value + 1
-          : line.length
-      ).length;
-    }
-  });
-
-  // compute accuracy
-  const result = Math.round(
-    ((totalChars - mistakesCount.value) / totalChars) * 100
-  );
-  return result > 0 ? result : 0;
-});
-
-/*
- * watch for locale update
- */
-watch(
-  () => locale.value,
-  () => {
-    loadLines();
-  }
-);
 </script>
 
 <style scoped lang="scss">
