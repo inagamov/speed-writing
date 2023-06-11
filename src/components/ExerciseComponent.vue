@@ -74,6 +74,7 @@ const {
   timerInterval,
   loading,
   speed,
+  song,
   showResults,
   showResultsConfetti,
 } = storeToRefs(useBaseStore());
@@ -92,6 +93,16 @@ onBeforeMount(() => {
     // prevent space default behaviour (scroll bottom)
     if (event.key === " ") {
       event.preventDefault();
+    }
+
+    // prevent typing while song is paused
+    if (
+      settings.value.mode === MODES.LYRICS &&
+      !song.value.isPlaying &&
+      (activeCharIndex.value > 0 ||
+        (activeCharIndex.value === 0 && activeLineIndex.value !== 0))
+    ) {
+      return;
     }
 
     // allow alphanumeric characters & some common special symbols
