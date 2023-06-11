@@ -144,6 +144,7 @@
                       : MODES.DEFAULT
                   )
                 "
+                v-close-popup
               >
                 <template #title>
                   {{ $t("modes.title") }}
@@ -164,7 +165,11 @@
               <q-separator class="q-mt-md q-mb-sm bg-grey-4" />
 
               <!-- results -->
-              <HeaderActionOption @click="showResults = true" class="bg-grey-2">
+              <HeaderActionOption
+                @click="showResults = true"
+                v-close-popup
+                class="bg-grey-2"
+              >
                 <template #title>
                   {{ $t("results.title") }}
                 </template>
