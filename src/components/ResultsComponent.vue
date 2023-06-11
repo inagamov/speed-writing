@@ -81,14 +81,16 @@
                     <div class="row justify-center">
                       <q-img
                         :src="result.song.cover_src"
-                        style="border-radius: 100%; width: 48px"
+                        style="border-radius: 100%; width: 48px; height: 48px"
                         class="q-mr-sm"
                       />
                     </div>
 
                     <div class="text-center q-pt-sm">
-                      <div>{{ result.song.name }}</div>
-                      <div class="text-grey">{{ result.song.author }}</div>
+                      <div class="ellipsis">{{ result.song.name }}</div>
+                      <div class="text-grey ellipsis">
+                        {{ result.song.author }}
+                      </div>
                     </div>
                   </div>
 
