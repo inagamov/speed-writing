@@ -10,7 +10,7 @@ export const EazyE_NoMoreQuestions = [
   "Whites, Mexicans, brothers and others",
   "Daily, it's all about comin' up",
   "Makin' sure no punks are runnin' up",
-  "Because I'm a gangsta havin' fun​",
+  "Because I'm a gangsta havin' fun",
   "Strapped with a gat when I'm walkin' through Compton",
   "Terrible, I never listened to my mother",
   "It went in one ear and out the other",
