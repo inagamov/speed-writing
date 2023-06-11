@@ -21,113 +21,128 @@
         </div>
 
         <!-- no results -->
-        <div v-if="!results.length" class="q-mt-lg">
-          <div class="text-center text-grey">
-            {{ $t("results.noData") }}
-          </div>
+        <q-slide-transition>
+          <q-intersection
+            v-if="!results.length"
+            transition="scale"
+            transition-duration="500"
+            once
+            class="q-mt-lg"
+          >
+            <div class="text-center text-grey">
+              {{ $t("results.noData") }}
+            </div>
 
-          <div class="row justify-center q-mt-lg">
-            <q-img src="/public/empty.svg" style="width: 50%" />
-          </div>
-        </div>
+            <div class="row justify-center q-mt-lg">
+              <q-img src="/public/empty.svg" style="width: 50%" />
+            </div>
+          </q-intersection>
 
-        <!-- attempts -->
-        <div v-else class="attempts q-mt-lg">
-          <div class="row q-gutter-lg">
-            <q-card
-              v-for="(result, index) in results"
-              :key="index"
-              flat
-              class="bg-grey-2 q-mt-xl"
-              style="width: calc(50% - 24px)"
-            >
-              <div v-if="index === 0 && showResultsConfetti" class="confetti">
-                <div class="confetti-piece" v-for="i in 13" :key="i"></div>
-              </div>
-
-              <q-btn
-                icon="delete"
+          <!-- attempts -->
+          <div v-else class="attempts q-mt-lg">
+            <div class="row q-gutter-lg">
+              <q-card
+                v-for="(result, index) in results"
+                :key="index"
                 flat
-                round
-                size="sm"
-                class="bg-grey-2"
-                style="position: absolute; top: -12px; right: 16px; z-index: 10"
-                @click="deleteResult(result.id)"
-              />
-
-              <q-card-section>
-                <!-- date -->
-                <div
-                  class="text-grey"
-                  style="font-size: 12px; position: absolute; top: -24px"
-                >
-                  {{ date.formatDate(result.id, "DD.MM, HH:mm") }}
+                class="bg-grey-2 q-mt-xl"
+                style="width: calc(50% - 24px)"
+              >
+                <div v-if="index === 0 && showResultsConfetti" class="confetti">
+                  <div class="confetti-piece" v-for="i in 13" :key="i"></div>
                 </div>
 
-                <!-- song -->
-                <div v-if="result.song" class="q-mb-md">
-                  <div class="row justify-center">
-                    <q-img
-                      :src="result.song.cover_src"
-                      style="border-radius: 100%; width: 48px"
-                      class="q-mr-sm"
-                    />
+                <q-btn
+                  icon="delete"
+                  flat
+                  round
+                  size="sm"
+                  class="bg-grey-2"
+                  style="
+                    position: absolute;
+                    top: -12px;
+                    right: 16px;
+                    z-index: 10;
+                  "
+                  @click="deleteResult(result.id)"
+                />
+
+                <q-card-section>
+                  <!-- date -->
+                  <div
+                    class="text-grey"
+                    style="font-size: 12px; position: absolute; top: -24px"
+                  >
+                    {{ date.formatDate(result.id, "DD.MM, HH:mm") }}
                   </div>
 
-                  <div class="text-center q-pt-sm">
-                    <div>{{ result.song.name }}</div>
-                    <div class="text-grey">{{ result.song.author }}</div>
-                  </div>
-                </div>
-
-                <!-- lang -->
-                <div v-else class="q-mb-md">
-                  <div class="row justify-center">
-                    <q-img
-                      :src="
-                        result.lang === 'ru-RU'
-                          ? '/public/russian_flag.svg'
-                          : '/public/british_flag.svg'
-                      "
-                      style="border-radius: 100%; width: 48px"
-                    />
-                  </div>
-
-                  <div class="text-center q-pt-sm">
-                    <div>
-                      {{ $t("language.title") }}
+                  <!-- song -->
+                  <div v-if="result.song" class="q-mb-md">
+                    <div class="row justify-center">
+                      <q-img
+                        :src="result.song.cover_src"
+                        style="border-radius: 100%; width: 48px"
+                        class="q-mr-sm"
+                      />
                     </div>
-                    <div class="text-grey">
-                      {{ result.lang === "ru-RU" ? "Русский" : "English" }}
+
+                    <div class="text-center q-pt-sm">
+                      <div>{{ result.song.name }}</div>
+                      <div class="text-grey">{{ result.song.author }}</div>
                     </div>
                   </div>
-                </div>
 
-                <!-- speed -->
-                <div>
-                  <div class="text-h5 text-center">
-                    <q-icon name="speed" style="margin-top: -4px" />
-                    {{ result.speed }}
-                    <template v-if="result.song">
-                      / {{ result.song.speed }}
-                    </template>
-                  </div>
-                  <div class="text-center text-grey">
-                    {{ $t("stats.speed.full") }}
-                  </div>
-                </div>
+                  <!-- lang -->
+                  <div v-else class="q-mb-md">
+                    <div class="row justify-center">
+                      <q-img
+                        :src="
+                          result.lang === 'ru-RU'
+                            ? '/public/russian_flag.svg'
+                            : '/public/british_flag.svg'
+                        "
+                        style="border-radius: 100%; width: 48px"
+                      />
+                    </div>
 
-                <!-- accuracy -->
-                <div class="q-mt-lg">
-                  <div class="text-h5 text-center">{{ result.accuracy }}%</div>
-                  <div class="text-center text-grey">
-                    {{ $t("stats.accuracy") }}
+                    <div class="text-center q-pt-sm">
+                      <div>
+                        {{ $t("language.title") }}
+                      </div>
+                      <div class="text-grey">
+                        {{ result.lang === "ru-RU" ? "Русский" : "English" }}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </q-card-section>
-            </q-card>
+
+                  <!-- speed -->
+                  <div>
+                    <div class="text-h5 text-center">
+                      <q-icon name="speed" style="margin-top: -4px" />
+                      {{ result.speed }}
+                      <template v-if="result.song">
+                        / {{ result.song.speed }}
+                      </template>
+                    </div>
+                    <div class="text-center text-grey">
+                      {{ $t("stats.speed.full") }}
+                    </div>
+                  </div>
+
+                  <!-- accuracy -->
+                  <div class="q-mt-lg">
+                    <div class="text-h5 text-center">
+                      {{ result.accuracy }}%
+                    </div>
+                    <div class="text-center text-grey">
+                      {{ $t("stats.accuracy") }}
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
           </div>
-        </div>
+        </q-slide-transition>
       </q-card-section>
     </q-card>
   </q-dialog>
