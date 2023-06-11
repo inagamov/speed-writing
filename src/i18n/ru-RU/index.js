@@ -1,6 +1,9 @@
 export default {
   stats: {
-    speed: "Знаков в минуту",
+    speed: {
+      full: "Знаков в минуту",
+      short: "Зн. / мин",
+    },
     accuracy: "Точность",
   },
 
@@ -17,5 +20,13 @@ export default {
     title: "Результаты",
     saved: "Результат сохранен. Отличная работа!",
     noData: "Пока что нет результатов",
+  },
+
+  modes: {
+    title: "Режим",
+  },
+
+  language: {
+    title: "Язык",
   },
 };

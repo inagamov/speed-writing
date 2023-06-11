@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
+import { MODES } from "src/constants/MODES";
 
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     settings: {
       sounds: true,
       linesAmount: 5,
+      mode: MODES.DEFAULT,
     },
   }),
 

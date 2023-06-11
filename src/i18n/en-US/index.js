@@ -1,6 +1,9 @@
 export default {
   stats: {
-    speed: "Characters per minute",
+    speed: {
+      full: "Characters per minute",
+      short: "Chars / min",
+    },
     accuracy: "Accuracy",
   },
 
@@ -17,5 +20,13 @@ export default {
     title: "Results",
     saved: "Result saved. Well done!",
     noData: "No results yet",
+  },
+
+  modes: {
+    title: "Mode",
+  },
+
+  language: {
+    title: "Language",
   },
 };

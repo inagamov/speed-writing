@@ -2,20 +2,33 @@
   <div class="header" ref="header">
     <!-- typing speed / characters per minute -->
     <HeaderCard>
-      <div class="text-h4 text-center">
-        <q-icon name="speed" style="margin-top: -4px" />
+      <div
+        class="text-center"
+        :class="$q.platform.is.mobile ? 'text-h6' : 'text-h4'"
+      >
+        <q-icon
+          v-if="!$q.platform.is.mobile"
+          name="speed"
+          style="margin-top: -4px"
+        />
         {{ timerInterval && isFinite(speed) ? speed : "***" }}
+        <template v-if="song">
+          / <span>{{ song.speed }}</span>
+        </template>
       </div>
-      <div class="text-center">{{ $t("stats.speed") }}</div>
+      <div class="text-center text-grey">{{ $t("stats.speed.full") }}</div>
     </HeaderCard>
 
     <!-- accuracy -->
-    <HeaderCard>
+    <HeaderCard class="q-mx-lg">
       <template #default>
-        <div class="text-h4 text-center">
+        <div
+          class="text-center"
+          :class="$q.platform.is.mobile ? 'text-h6' : 'text-h4'"
+        >
           {{ timerInterval ? accuracy + "%" : "**" }}
         </div>
-        <div class="text-center">{{ $t("stats.accuracy") }}</div>
+        <div class="text-center text-grey">{{ $t("stats.accuracy") }}</div>
       </template>
     </HeaderCard>
 
@@ -120,6 +133,34 @@
                 </template>
               </HeaderActionOption>
 
+              <!-- mode -->
+              <HeaderActionOption
+                class="bg-grey-2 text-black"
+                @click="
+                  updateSettings(
+                    SETTINGS.MODE,
+                    settings[SETTINGS.MODE] === MODES.DEFAULT
+                      ? MODES.LYRICS
+                      : MODES.DEFAULT
+                  )
+                "
+              >
+                <template #title>
+                  {{ $t("modes.title") }}
+                </template>
+
+                <template #icon>
+                  <q-icon
+                    :name="
+                      settings[SETTINGS.MODE] === MODES.DEFAULT
+                        ? 'article'
+                        : 'library_music'
+                    "
+                    size="24px"
+                  />
+                </template>
+              </HeaderActionOption>
+
               <q-separator class="q-mt-md q-mb-sm bg-grey-4" />
 
               <!-- results -->
@@ -167,14 +208,23 @@ import { useI18n } from "vue-i18n";
 import HeaderAction from "components/Header/HeaderAction.vue";
 import HeaderCard from "components/Header/HeaderCard.vue";
 import HeaderActionOption from "components/Header/HeaderActionOption.vue";
+import { MODES } from "src/constants/MODES";
 
 // lang
 const { locale } = useI18n({ useScope: "global" });
 const showLangOptions = ref(false);
 
 // base
-const { lines, loading, timerInterval, accuracy, speed, results, showResults } =
-  storeToRefs(useBaseStore());
+const {
+  lines,
+  loading,
+  timerInterval,
+  accuracy,
+  speed,
+  results,
+  showResults,
+  song,
+} = storeToRefs(useBaseStore());
 const { loadLines, addLine, removeLine } = useBaseStore();
 
 // settings
@@ -193,7 +243,17 @@ watch(
 );
 
 /*
- * stuck
+ * watch for mode update
+ */
+watch(
+  () => settings.value.mode,
+  () => {
+    loadLines();
+  }
+);
+
+/*
+ * header sticky styles
  */
 const header = ref();
 window.addEventListener("scroll", () => {

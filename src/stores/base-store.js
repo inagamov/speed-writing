@@ -2,10 +2,13 @@ import { defineStore, storeToRefs } from "pinia";
 import { api } from "boot/axios";
 import { transliterateEnglishToRussian } from "src/helpers/transliterate";
 import { useSettingsStore } from "stores/settings-store";
+import { MODES } from "src/constants/MODES";
+import { SONGS } from "src/constants/SONGS";
 
 export const useBaseStore = defineStore("base", {
   state: () => ({
     lines: [],
+    song: null,
     activeLineIndex: 0,
     activeCharIndex: 0,
 
@@ -41,7 +44,7 @@ export const useBaseStore = defineStore("base", {
       });
 
       // compute typing speed, rounding the number
-      return Math.trunc((totalChars / state.time) * 100);
+      return Math.trunc((totalChars / state.time) * 60);
     },
 
     /*
@@ -73,6 +76,14 @@ export const useBaseStore = defineStore("base", {
     clearData() {
       this.lines = [];
 
+      if (this.song) {
+        this.song.audio.pause();
+        this.song.audio.currentTime = 0;
+        this.song.audio.src = "";
+        this.song.isPlaying = false;
+        this.song = null;
+      }
+
       this.activeLineIndex = 0;
       this.activeCharIndex = 0;
 
@@ -82,15 +93,22 @@ export const useBaseStore = defineStore("base", {
       this.stopTimer();
     },
 
-    processLines(lines) {
-      lines[0].split(/[.?!]\s/).map((line, index) => {
-        if (localStorage.getItem("lang") === "ru-RU") {
-          line = transliterateEnglishToRussian(line);
-        }
+    processLines(array) {
+      const { settings } = storeToRefs(useSettingsStore());
 
-        setTimeout(() => {
-          this.lines.push(line.trim().split(""));
-        }, 100 * index);
+      array.map((item) => {
+        item.split(/[.?!]\s/).map((line, index) => {
+          if (
+            settings.value.mode === MODES.DEFAULT &&
+            localStorage.getItem("lang") === "ru-RU"
+          ) {
+            line = transliterateEnglishToRussian(line);
+          }
+
+          setTimeout(() => {
+            this.lines.push(line.trim().split(""));
+          }, 100 * index);
+        });
       });
     },
 
@@ -113,8 +131,27 @@ export const useBaseStore = defineStore("base", {
       this.loading = true;
 
       const { settings } = storeToRefs(useSettingsStore());
-      const response = await this.fetchLines(settings.value.linesAmount);
-      this.processLines(response.data);
+
+      // default mode
+      if (settings.value.mode === MODES.DEFAULT) {
+        // fetch lorem ipsum text
+        const response = await this.fetchLines(settings.value.linesAmount);
+        this.processLines(response.data);
+      }
+
+      // lyrics mode
+      if (settings.value.mode === MODES.LYRICS) {
+        // get songs for selected lang
+        const songs = SONGS.filter(
+          (song) => song.lang === localStorage.getItem("lang")
+        );
+
+        // select a random song
+        this.song = songs[Math.floor(Math.random() * songs.length)];
+        this.song.audio = new Audio(this.song.audio_src);
+        this.song.audio.loop = true;
+        this.processLines(this.song.lyrics);
+      }
 
       this.loading = false;
     },
@@ -123,6 +160,11 @@ export const useBaseStore = defineStore("base", {
      * timer
      */
     startTimer() {
+      if (this.song) {
+        this.song.audio.play();
+        this.song.isPlaying = true;
+      }
+
       this.timerInterval = setInterval(() => {
         this.time++;
       }, 1000);
@@ -130,6 +172,12 @@ export const useBaseStore = defineStore("base", {
 
     pauseTimer() {
       clearInterval(this.timerInterval);
+    },
+
+    playTimer() {
+      this.timerInterval = setInterval(() => {
+        this.time++;
+      }, 1000);
     },
 
     stopTimer() {
@@ -164,11 +212,13 @@ export const useBaseStore = defineStore("base", {
       this.results = results ? results : [];
     },
 
-    saveResult(speed, accuracy) {
+    saveResult() {
       this.results.unshift({
         id: new Date(),
-        speed: speed,
-        accuracy: accuracy,
+        speed: this.speed,
+        accuracy: this.accuracy,
+        song: this.song,
+        lang: localStorage.getItem("lang"),
       });
       this.syncResults();
     },

@@ -1,6 +1,9 @@
 <template>
   <q-page>
-    <div class="container">
+    <div
+      class="container"
+      :style="settings.mode === MODES.LYRICS ? 'padding-bottom: 164px' : ''"
+    >
       <!-- header -->
       <HeaderStats />
 
@@ -53,6 +56,9 @@
         </transition-group>
       </div>
 
+      <!-- playing song -->
+      <SongComponent v-if="song?.audio" />
+
       <!-- results -->
       <ResultsComponent />
     </div>
@@ -69,6 +75,8 @@ import { useSettingsStore } from "stores/settings-store";
 import { SETTINGS } from "src/constants/SETTINGS";
 import HeaderStats from "components/Header/HeaderComponent.vue";
 import ResultsComponent from "components/ResultsComponent.vue";
+import SongComponent from "components/SongComponent.vue";
+import { MODES } from "src/constants/MODES";
 
 // general
 const { locale, t } = useI18n({ useScope: "global" });
@@ -83,13 +91,12 @@ const {
   isMistaken,
   timerInterval,
   loading,
-  accuracy,
   speed,
+  song,
   showResults,
   showResultsConfetti,
 } = storeToRefs(useBaseStore());
-const { loadLines, startTimer, loadResults, saveResult, clearData } =
-  useBaseStore();
+const { loadLines, startTimer, loadResults, saveResult } = useBaseStore();
 
 const activeLine = computed(() => {
   return lines.value[activeLineIndex.value];
@@ -114,15 +121,15 @@ onBeforeMount(async () => {
 
   // handle input
   document.addEventListener("keydown", function (event) {
-    // prevent space
+    // prevent space default behaviour (scroll bottom)
     if (event.key === " ") {
       event.preventDefault();
     }
 
     // allow alphanumeric characters & some common special symbols
     if (
-      /^[a-zA-Zа-яА-Я0-9]$/.test(event.key) ||
-      /^[.,\s\-*&^%$#@!']$/.test(event.key)
+      /^[a-zA-Zёа-яА-Я0-9]$/.test(event.key) ||
+      /^[.,\s\-*&^%$#@?!'{()I }[\]\/<>:;~`]$/.test(event.key)
     ) {
       // on start
       if (!timerInterval.value) {
@@ -131,8 +138,9 @@ onBeforeMount(async () => {
 
       // warn about incorrect keyboard layout
       if (
-        (locale.value === "ru-RU" && /^[a-zA-Z]*$/.test(event.key)) ||
-        (locale.value === "en-US" && /^[а-яА-Я]*$/.test(event.key))
+        settings.value.mode !== MODES.LYRICS &&
+        ((locale.value === "ru-RU" && /^[a-zA-Z]*$/.test(event.key)) ||
+          (locale.value === "en-US" && /^[а-яА-Я]*$/.test(event.key)))
       ) {
         $q.notify({
           message: t("errors.keyboardLayout"),
@@ -174,7 +182,7 @@ onBeforeMount(async () => {
 
           // finish
         } else {
-          saveResult(speed.value, accuracy.value);
+          saveResult();
           loadLines();
 
           showResults.value = true;

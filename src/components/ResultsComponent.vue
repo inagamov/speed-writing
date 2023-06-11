@@ -64,14 +64,56 @@
                   {{ date.formatDate(result.id, "DD.MM, HH:mm") }}
                 </div>
 
+                <!-- song -->
+                <div v-if="result.song" class="q-mb-md">
+                  <div class="row justify-center">
+                    <q-img
+                      :src="result.song.cover_src"
+                      style="border-radius: 100%; width: 48px"
+                      class="q-mr-sm"
+                    />
+                  </div>
+
+                  <div class="text-center q-pt-sm">
+                    <div>{{ result.song.name }}</div>
+                    <div class="text-grey">{{ result.song.author }}</div>
+                  </div>
+                </div>
+
+                <!-- lang -->
+                <div v-else class="q-mb-md">
+                  <div class="row justify-center">
+                    <q-img
+                      :src="
+                        result.lang === 'ru-RU'
+                          ? '/public/russian_flag.svg'
+                          : '/public/british_flag.svg'
+                      "
+                      style="border-radius: 100%; width: 48px"
+                    />
+                  </div>
+
+                  <div class="text-center q-pt-sm">
+                    <div>
+                      {{ $t("language.title") }}
+                    </div>
+                    <div class="text-grey">
+                      {{ result.lang === "ru-RU" ? "Русский" : "English" }}
+                    </div>
+                  </div>
+                </div>
+
                 <!-- speed -->
                 <div>
                   <div class="text-h5 text-center">
                     <q-icon name="speed" style="margin-top: -4px" />
                     {{ result.speed }}
+                    <template v-if="result.song">
+                      / {{ result.song.speed }}
+                    </template>
                   </div>
                   <div class="text-center text-grey">
-                    {{ $t("stats.speed") }}
+                    {{ $t("stats.speed.full") }}
                   </div>
                 </div>
 
@@ -122,8 +164,15 @@ watch(
   border-radius: 20px;
 }
 
+@media screen and (max-width: 500px) {
+  .results_card {
+    min-width: 100%;
+    width: 100%;
+  }
+}
+
 .attempts {
-  max-height: 396px;
+  max-height: 624px;
   overflow-y: scroll;
 }
 
@@ -143,8 +192,8 @@ watch(
   position: absolute;
   width: 100%;
   height: 100%;
-  max-height: 162px;
   overflow: hidden;
+  max-height: 276px;
   z-index: 9;
 }
 .confetti-piece {
