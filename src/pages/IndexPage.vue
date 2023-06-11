@@ -52,6 +52,9 @@
           </q-intersection>
         </transition-group>
       </div>
+
+      <!-- results -->
+      <ResultsComponent />
     </div>
   </q-page>
 </template>
@@ -64,17 +67,14 @@ import { useQuasar } from "quasar";
 import { useI18n } from "vue-i18n";
 import { useSettingsStore } from "stores/settings-store";
 import { SETTINGS } from "src/constants/SETTINGS";
-import HeaderStats from "components/HeaderComponent.vue";
+import HeaderStats from "components/Header/HeaderComponent.vue";
+import ResultsComponent from "components/ResultsComponent.vue";
 
+// general
 const { locale, t } = useI18n({ useScope: "global" });
 const $q = useQuasar();
 
-const { loadLines, startTimer } = useBaseStore();
-const { loadSettings } = useSettingsStore();
-
-/*
- * variables
- */
+// base
 const {
   lines,
   activeLineIndex,
@@ -83,31 +83,36 @@ const {
   isMistaken,
   timerInterval,
   loading,
+  accuracy,
+  speed,
+  showResults,
+  showResultsConfetti,
 } = storeToRefs(useBaseStore());
-
-const { settings } = storeToRefs(useSettingsStore());
+const { loadLines, startTimer, loadResults, saveResult, clearData } =
+  useBaseStore();
 
 const activeLine = computed(() => {
   return lines.value[activeLineIndex.value];
 });
 
+// settings
+const { settings } = storeToRefs(useSettingsStore());
+const { loadSettings } = useSettingsStore();
+
 /*
  * functions
  */
 onBeforeMount(async () => {
-  /*
-   * load settings
-   */
+  // load settings
   loadSettings();
 
-  /*
-   * fetch lines
-   */
+  // load results
+  loadResults();
+
+  // fetch lines
   await loadLines();
 
-  /*
-   * input
-   */
+  // handle input
   document.addEventListener("keydown", function (event) {
     // prevent space
     if (event.key === " ") {
@@ -160,10 +165,27 @@ onBeforeMount(async () => {
         }
       }
 
-      // proceed to the next line
+      // line complete
       if (activeLine.value?.length === activeCharIndex.value) {
-        activeLineIndex.value += 1;
-        activeCharIndex.value = 0;
+        // proceed to the next line
+        if (activeLineIndex.value + 1 < lines.value.length) {
+          activeLineIndex.value += 1;
+          activeCharIndex.value = 0;
+
+          // finish
+        } else {
+          saveResult(speed.value, accuracy.value);
+          clearData();
+
+          showResults.value = true;
+          showResultsConfetti.value = true;
+
+          $q.notify({
+            message: t("results.saved"),
+            icon: "celebration",
+            color: "black",
+          });
+        }
       }
     }
   });

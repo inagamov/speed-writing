@@ -12,4 +12,10 @@ export default {
     sounds: "Sounds",
     lines_amount: "Lines amount",
   },
+
+  results: {
+    title: "Results",
+    saved: "Result saved. Well done!",
+    noData: "No results yet",
+  },
 };

@@ -2,7 +2,6 @@ import { defineStore, storeToRefs } from "pinia";
 import { api } from "boot/axios";
 import { transliterateEnglishToRussian } from "src/helpers/transliterate";
 import { useSettingsStore } from "stores/settings-store";
-import { SETTINGS } from "src/constants/SETTINGS";
 
 export const useBaseStore = defineStore("base", {
   state: () => ({
@@ -17,7 +16,58 @@ export const useBaseStore = defineStore("base", {
     timerInterval: null,
 
     loading: false,
+
+    results: [],
+    showResults: false,
+    showResultsConfetti: false,
   }),
+
+  getters: {
+    /*
+     * characters per minute
+     */
+    speed: (state) => {
+      // compute total amount of characters typed by user
+      let totalChars = 0;
+      state.lines.map((line, index) => {
+        if (state.activeLineIndex >= index) {
+          totalChars += line?.slice(
+            0,
+            state.activeLineIndex === index
+              ? state.activeCharIndex + 1
+              : line.length
+          ).length;
+        }
+      });
+
+      // compute typing speed, rounding the number
+      return Math.trunc((totalChars / state.time) * 100);
+    },
+
+    /*
+     * accuracy
+     */
+    accuracy: (state) => {
+      // compute total amount of characters typed by user
+      let totalChars = 0;
+      state.lines.map((line, index) => {
+        if (state.activeLineIndex >= index) {
+          totalChars += line?.slice(
+            0,
+            state.activeLineIndex === index
+              ? state.activeCharIndex + 1
+              : line.length
+          ).length;
+        }
+      });
+
+      // compute accuracy
+      const result = Math.round(
+        ((totalChars - state.mistakesCount) / totalChars) * 100
+      );
+      return result > 0 ? result : 0;
+    },
+  },
 
   actions: {
     clearData() {
@@ -44,7 +94,9 @@ export const useBaseStore = defineStore("base", {
       });
     },
 
-    // fetching lines
+    /*
+     * fetching lines
+     */
     async fetchLines(linesAmount = 5) {
       return await api
         .get(
@@ -61,14 +113,15 @@ export const useBaseStore = defineStore("base", {
       this.loading = true;
 
       const { settings } = storeToRefs(useSettingsStore());
-      console.log(settings.value.linesAmount);
       const response = await this.fetchLines(settings.value.linesAmount);
       this.processLines(response.data);
 
       this.loading = false;
     },
 
-    // timer
+    /*
+     * timer
+     */
     startTimer() {
       this.timerInterval = setInterval(() => {
         this.time++;
@@ -97,6 +150,33 @@ export const useBaseStore = defineStore("base", {
 
         this.lines.pop();
       }
+    },
+
+    /*
+     * results
+     */
+    syncResults() {
+      localStorage.setItem("results", JSON.stringify(this.results));
+    },
+
+    loadResults() {
+      const results = JSON.parse(localStorage.getItem("results"));
+      this.results = results ? results : [];
+    },
+
+    saveResult(speed, accuracy) {
+      this.results.unshift({
+        id: new Date(),
+        speed: speed,
+        accuracy: accuracy,
+      });
+      this.syncResults();
+    },
+
+    deleteResult(id) {
+      this.results = this.results.filter((result) => result.id !== id);
+      this.showResultsConfetti = false;
+      this.syncResults();
     },
   },
 });
