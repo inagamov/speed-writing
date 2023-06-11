@@ -15,7 +15,7 @@
       </q-intersection>
 
       <!-- lines -->
-      <div v-else class="q-mt-lg">
+      <div v-else class="q-mt-md">
         <transition-group appear leave-active-class="animated fadeOutDown">
           <q-intersection
             v-for="(line, lineIndex) in lines"
@@ -175,7 +175,7 @@ onBeforeMount(async () => {
           // finish
         } else {
           saveResult(speed.value, accuracy.value);
-          clearData();
+          loadLines();
 
           showResults.value = true;
           showResultsConfetti.value = true;

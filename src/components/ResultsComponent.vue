@@ -33,12 +33,12 @@
 
         <!-- attempts -->
         <div v-else class="attempts q-mt-lg">
-          <div class="row q-gutter-lg q-pt-lg">
+          <div class="row q-gutter-lg">
             <q-card
               v-for="(result, index) in results"
               :key="index"
               flat
-              class="bg-grey-2"
+              class="bg-grey-2 q-mt-xl"
               style="width: calc(50% - 24px)"
             >
               <div v-if="index === 0 && showResultsConfetti" class="confetti">
@@ -123,7 +123,7 @@ watch(
 }
 
 .attempts {
-  max-height: 364px;
+  max-height: 396px;
   overflow-y: scroll;
 }
 

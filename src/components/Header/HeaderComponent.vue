@@ -70,7 +70,7 @@
               </HeaderActionOption>
 
               <!-- lines amount -->
-              <HeaderActionOption>
+              <HeaderActionOption class="bg-grey-2">
                 <template #title>
                   {{ $t("settings.lines_amount") }}
                 </template>
@@ -123,10 +123,7 @@
               <q-separator class="q-mt-md q-mb-sm bg-grey-4" />
 
               <!-- results -->
-              <HeaderActionOption
-                @click="showResults = true"
-                :class="showResults ? 'bg-grey-2' : ''"
-              >
+              <HeaderActionOption @click="showResults = true" class="bg-grey-2">
                 <template #title>
                   {{ $t("results.title") }}
                 </template>
