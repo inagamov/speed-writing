@@ -14,7 +14,10 @@ export const useSettingsStore = defineStore("settings", {
     },
 
     loadSettings() {
-      this.settings = JSON.parse(localStorage.getItem("settings"));
+      const settings = JSON.parse(localStorage.getItem("settings"));
+      if (settings) {
+        this.settings = settings;
+      }
     },
 
     updateSettings(key, value) {
