@@ -182,6 +182,7 @@ export const useBaseStore = defineStore("base", {
 
     stopTimer() {
       this.pauseTimer();
+      this.timerInterval = null;
       this.time = 0;
     },
 
